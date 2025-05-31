@@ -1,13 +1,12 @@
-import dotenv from 'dotenv';
 import sql from 'mssql';
-
-dotenv.config();
+import { config } from './config';
 
 interface DatabaseConfig {
   server: string;
   database: string;
   user: string;
   password: string;
+  port: number;
   options: {
     encrypt: boolean;
     trustServerCertificate: boolean;
@@ -21,10 +20,7 @@ class DatabaseMonitor {
 
   constructor() {
     this.config = {
-      server: process.env.DB_SERVER!,
-      database: process.env.DB_DATABASE!,
-      user: process.env.DB_USER!,
-      password: process.env.DB_PASSWORD!,
+      ...config,
       options: {
         encrypt: true,
         trustServerCertificate: true,
@@ -35,7 +31,7 @@ class DatabaseMonitor {
   private async getCurrentSnapshot(): Promise<any[]> {
     try {
       const pool = await sql.connect(this.config);
-      const result = await pool.request().query('SELECT * FROM YourTableName');
+      const result = await pool.request().query('SELECT * FROM TestTable');
       await pool.close();
       return result.recordset;
     } catch (error) {
@@ -118,10 +114,5 @@ class DatabaseMonitor {
 
 // Usage example
 const monitor = new DatabaseMonitor();
-monitor.startMonitoring().catch(console.error);
 
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  monitor.stopMonitoring();
-  process.exit(0);
-}); 
+export default monitor;
